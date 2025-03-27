@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Welcome, Gérant of {{ store.name }}</h1>
+
+<h2>Dashboard Management</h2>
+<ul>
+    <a href="{% url 'gerant_dashboard:manage_employees' %}">Manage Employees</a>
+
+    <li><a href="#">Manage Stock</a></li>
+    <li><a href="#">View Statistics</a></li>
+    <li><a href="#">Manage Reservations</a></li>
+    <li><a href="#">Manage Expenses</a></li>
+    <li><a href="#">Manage Offers</a></li>
+    <li><a href="#">View History</a></li>
+</ul>
+
+{% endblock %}
