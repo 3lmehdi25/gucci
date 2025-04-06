@@ -9,6 +9,12 @@
     <nav>
         <a href="{% url 'authentication:login' %}">Login</a> |
         <a href="{% url 'authentication:signup' %}">Sign Up</a>
+        {% if request.user.is_authenticated %}
+        <span>Welcome, {{ request.user.username }}!</span> |
+        <a href="{% url 'authentication:logout' %}">Disconnect</a>
+    {% else %}
+
+    {% endif %}
     </nav>
 
     <main>
