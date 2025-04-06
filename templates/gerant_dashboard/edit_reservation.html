@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Edit Reservation</h1>
+<form method="post">
+    {% csrf_token %}
+  
+
+    <label for="client_name">Client Name:</label>
+    <input type="text" name="client_name" value="{{ form.instance.client_name }}" required>
+
+    <label for="client_contact">Contact:</label>
+    <input type="text" name="client_contact" value="{{ form.instance.client_contact }}" required>
+
+    <label for="date">Date:</label>
+    <input type="date" name="date" value="{{ form.instance.date|date:'Y-m-d' }}" required>
+
+    <label for="time">Time:</label>
+    <input type="time" name="time" value="{{ form.instance.time|time:'H:i' }}" required>
+
+    <button type="submit" class="btn btn-success">Save</button>
+</form>
+{% endblock %}

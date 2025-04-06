@@ -1,6 +1,12 @@
 from django.urls import path
 from .views import gerant_dashboard, manage_employees, add_employee, \
-    delete_employee, edit_employee  # Only include the home view for now
+    delete_employee, edit_employee, manage_stock, add_stock, edit_stock, \
+    delete_stock, \
+    add_table, list_tables, edit_table, delete_table, \
+    edit_reservation, reservation_list, cancel_reservation, \
+    add_reservation, complete_reservation, reservation_history,  \
+     special_client_list, add_special_client, \
+    edit_special_client, delete_special_client  # Only include the home view for now
 
 app_name = "gerant_dashboard"
 
@@ -10,5 +16,28 @@ urlpatterns = [
     path("employees/add/", add_employee, name="add_employee"),
     path("employees/delete/<int:employee_id>/", delete_employee, name="delete_employee"),
     path("employees/edit/<int:employee_id>/", edit_employee, name="edit_employee"),
+
+    path("manage_stock/", manage_stock, name="manage_stock"),
+    path("manage_stock/add/", add_stock, name="add_stock"),
+    path("manage_stock/edit/<int:stock_id>/", edit_stock, name="edit_stock"),
+    path("manage_stock/delete/<int:stock_id>/", delete_stock, name="delete_stock"),
+path('tables/edit/<int:table_id>/', edit_table, name='edit_table'),
+    path('tables/delete/<int:table_id>/', delete_table, name='delete_table'),
+
+
+    path("tables/", list_tables, name="list_tables"),
+    path("tables/add/", add_table, name="add_table"),
+
+    path("reservations/", reservation_list, name="reservation_list"),
+    path("reservations/add/<int:table_id>/", add_reservation, name="add_reservation"),
+    path("reservations/edit/<int:reservation_id>/", edit_reservation, name="edit_reservation"),
+    path("reservations/cancel/<int:reservation_id>/", cancel_reservation, name="cancel_reservation"),
+    path("reservations/done/<int:reservation_id>/", complete_reservation, name="complete_reservation"),
+    path("reservations/history/", reservation_history, name="reservation_history"),
+
+    path("clients/special/", special_client_list, name="special_client_list"),
+    path("clients/special/add/", add_special_client, name="add_special_client"),
+    path("clients/special/edit/<int:client_id>/", edit_special_client, name="edit_special_client"),
+    path("clients/special/delete/<int:client_id>/", delete_special_client, name="delete_special_client"),
 ]
 

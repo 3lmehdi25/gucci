@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Table Reservations</h1>
+<a href="{% url 'gerant_dashboard:reservation_history' %}" class="btn btn-info">View Reservation History</a>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Table</th>
+            <th>Seats</th>
+            <th>Client</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for table in tables %}
+        <tr>
+            <td>Table {{ table.number }}</td>
+            <td>{{ table.seats }}</td>
+
+            {% with table.reservations.all|first as reservation %}
+                {% if reservation %}
+                    <td>{{ reservation.client_name }}</td>
+                    <td>{{ reservation.date }}</td>
+                    <td>{{ reservation.time }}</td>
+                    <td>
+                        <a href="{% url 'gerant_dashboard:edit_reservation' reservation.id %}" class="btn btn-warning btn-sm">Edit</a>
+                        <a href="{% url 'gerant_dashboard:cancel_reservation' reservation.id %}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?');">Cancel</a>
+                        <a href="{% url 'gerant_dashboard:complete_reservation' reservation.id %}" class="btn btn-success btn-sm">Done</a>
+                    </td>
+                {% else %}
+                    <td colspan="3">No reservation</td>
+                    <td>
+                        <a href="{% url 'gerant_dashboard:add_reservation' table.id %}" class="btn btn-primary btn-sm">Reserve</a>
+                    </td>
+                {% endif %}
+            {% endwith %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

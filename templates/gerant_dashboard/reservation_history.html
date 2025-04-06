@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Reservation History</h1>
+
+<table border="1">
+    <tr>
+        <th>Table</th>
+        <th>Client Name</th>
+        <th>Contact</th>
+        <th>Date</th>
+        <th>Time</th>
+        <th>Status</th>
+    </tr>
+    {% for entry in history %}
+    <tr>
+        <td>Table {{ entry.table.number }}</td>
+        <td>{{ entry.client_name }}</td>
+        <td>{{ entry.client_contact }}</td>
+        <td>{{ entry.date }}</td>
+        <td>{{ entry.time }}</td>
+        <td>{{ entry.status }}</td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="6">No past reservations found.</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<a href="{% url 'gerant_dashboard:reservation_list' %}">Back to Reservations</a>
+
+{% endblock %}

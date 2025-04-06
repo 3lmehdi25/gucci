@@ -1,13 +1,20 @@
+from datetime import date
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from pdg_dashboard.models import Store
+from django.views.decorators.http import require_POST
+
+from pdg_dashboard.models import Store, Stock
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from authentication.models import User
 from pdg_dashboard.models import Store
-from .forms import  EmployeeEditForm, EmployeeCreateForm
+from .forms import EmployeeEditForm, EmployeeCreateForm, StockForm, TableForm, ReservationForm, SpecialClientForm
+from .models import Reservation, Table, ReservationHistory, SpecialClient
+from django.contrib.auth import get_user_model
 
+User = get_user_model()  # This ensures you're using 'authentication.User'
 
 def is_gerant(user):
     """Check if the user is a Gérant."""
@@ -94,3 +101,274 @@ def edit_employee(request, employee_id):
         form = EmployeeEditForm(instance=employee)
 
     return render(request, "gerant_dashboard/edit_employee.html", {"form": form, "employee": employee})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@login_required
+def manage_stock(request):
+    """View to list stock items for the Gérant's store"""
+    store = request.user.store  # Get the Gérant's store
+    stock_items = Stock.objects.filter(store=store)  # Fetch stock for this store
+    return render(request, "gerant_dashboard/manage_stock.html", {"stock_items": stock_items})
+
+
+@login_required
+def add_stock(request):
+    """View to add a new stock item"""
+    if request.method == "POST":
+        form = StockForm(request.POST)
+        if form.is_valid():
+            stock_item = form.save(commit=False)
+            stock_item.store = request.user.store  # Assign stock to the Gérant's store
+            stock_item.save()
+            return redirect("gerant_dashboard:manage_stock")
+    else:
+        form = StockForm()
+
+    return render(request, "gerant_dashboard/stock_form.html", {"form": form})
+
+
+@login_required
+def edit_stock(request, stock_id):
+    """View to edit an existing stock item"""
+    stock_item = get_object_or_404(Stock, id=stock_id, store=request.user.store)
+
+    if request.method == "POST":
+        form = StockForm(request.POST, instance=stock_item)
+        if form.is_valid():
+            form.save()
+            return redirect("gerant_dashboard:manage_stock")
+    else:
+        form = StockForm(instance=stock_item)
+
+    return render(request, "gerant_dashboard/stock_form.html", {"form": form})
+
+
+@login_required
+def delete_stock(request, stock_id):
+    """View to delete a stock item"""
+    stock_item = get_object_or_404(Stock, id=stock_id, store=request.user.store)
+
+    if request.method == "POST":
+        stock_item.delete()
+        return redirect("gerant_dashboard:manage_stock")
+
+    return render(request, "gerant_dashboard/confirm_delete.html", {"stock_item": stock_item})
+
+
+
+
+
+def list_tables(request):
+    tables = Table.objects.filter(store=request.user.store).order_by("number")
+    return render(request, 'gerant_dashboard/list_tables.html', {'tables': tables})
+
+
+def add_table(request):
+    if request.method == 'POST':
+        form = TableForm(request.POST)
+        if form.is_valid():
+            store = request.user.store
+            last_table = Table.objects.filter(store=store).order_by("number").last()
+            next_number = last_table.number + 1 if last_table else 1  # Auto-increment
+
+            table = form.save(commit=False)
+            table.store = store
+            table.number = next_number  # Assign the correct number
+            table.save()
+
+            messages.success(request, "Table added successfully!")
+            return redirect('gerant_dashboard:list_tables')
+    else:
+        form = TableForm()
+    return render(request, 'gerant_dashboard/add_table.html', {'form': form})
+
+
+def edit_table(request, table_id):
+    table = get_object_or_404(Table, id=table_id, store=request.user.store)
+    if request.method == 'POST':
+        form = TableForm(request.POST, instance=table)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Table updated successfully!")
+            return redirect('gerant_dashboard:list_tables')
+    else:
+        form = TableForm(instance=table)
+    return render(request, 'gerant_dashboard/edit_table.html', {'form': form, 'table': table})
+
+
+def delete_table(request, table_id):
+    store = request.user.store
+    table = get_object_or_404(Table, id=table_id, store=store)
+    table.delete()
+
+    # Reorder table numbers to maintain sequence
+    tables = Table.objects.filter(store=store).order_by("number")
+    for index, table in enumerate(tables, start=1):
+        table.number = index  # Reset table numbers
+        table.save()
+
+    messages.success(request, "Table deleted and numbers reordered!")
+    return redirect('gerant_dashboard:list_tables')
+
+
+
+
+
+
+
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Table, Reservation
+from .forms import ReservationForm
+
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Table, Reservation
+from .forms import ReservationForm
+
+
+def reservation_list(request):
+    tables = Table.objects.prefetch_related("reservations").all()
+
+    return render(request, "gerant_dashboard/reservation_list.html", {
+        "tables": tables,
+    })
+
+
+def add_reservation(request, table_id):
+    table = get_object_or_404(Table, id=table_id)
+    if request.method == "POST":
+        form = ReservationForm(request.POST)
+        if form.is_valid():
+            reservation = form.save(commit=False)
+            reservation.table = table
+            reservation.status = "reserved"
+            reservation.save()
+            return redirect("gerant_dashboard:reservation_list")
+    else:
+        form = ReservationForm(initial={"table": table})
+
+    return render(request, "gerant_dashboard/add_reservation.html", {"form": form})
+
+
+def edit_reservation(request, reservation_id):
+    reservation = get_object_or_404(Reservation, id=reservation_id)  # Get the reservation
+
+    if request.method == "POST":
+        form = ReservationForm(request.POST, instance=reservation)  # Bind form with existing instance
+        if form.is_valid():
+            form.save()
+            return redirect("gerant_dashboard:reservation_list")
+    else:
+        form = ReservationForm(instance=reservation)  # Pre-fill with old data
+
+    return render(request, "gerant_dashboard/edit_reservation.html", {"form": form})
+
+
+def cancel_reservation(request, reservation_id):
+    reservation = get_object_or_404(Reservation, id=reservation_id)
+
+    # Move to history
+    ReservationHistory.objects.create(
+        table=reservation.table,
+        client_name=reservation.client_name,
+        client_contact=reservation.client_contact,
+        date=reservation.date,
+        time=reservation.time,
+        status="cancelled"
+    )
+
+    reservation.delete()
+    return redirect("gerant_dashboard:reservation_list")
+
+
+def complete_reservation(request, reservation_id):
+    reservation = get_object_or_404(Reservation, id=reservation_id)
+
+    # Move to history
+    ReservationHistory.objects.create(
+        table=reservation.table,
+        client_name=reservation.client_name,
+        client_contact=reservation.client_contact,
+        date=reservation.date,
+        time=reservation.time,
+        status="completed"
+    )
+
+    reservation.delete()
+    return redirect("gerant_dashboard:reservation_list")
+
+
+def reservation_history(request):
+    history = ReservationHistory.objects.all().order_by("-date", "-time")
+    return render(request, "gerant_dashboard/reservation_history.html", {"history": history})
+
+
+
+
+
+
+
+
+
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import get_user_model
+from .models import SpecialClient
+from .forms import SpecialClientForm
+
+User = get_user_model()
+
+def special_client_list(request):
+    """ Show only special clients """
+    special_clients = SpecialClient.objects.all()
+    return render(request, "gerant_dashboard/special_client_list.html", {"special_clients": special_clients})
+
+def add_special_client(request):
+    """ Form to add a special client """
+    if request.method == "POST":
+        form = SpecialClientForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect("gerant_dashboard:special_client_list")
+    else:
+        form = SpecialClientForm()
+
+    return render(request, "gerant_dashboard/add_special_client.html", {"form": form})
+
+def edit_special_client(request, client_id):
+    """ Edit special client type """
+    special_client = get_object_or_404(SpecialClient, id=client_id)
+
+    if request.method == "POST":
+        form = SpecialClientForm(request.POST, instance=special_client)
+        if form.is_valid():
+            form.save()
+            return redirect("gerant_dashboard:special_client_list")
+    else:
+        form = SpecialClientForm(instance=special_client)
+
+    return render(request, "gerant_dashboard/edit_special_client.html", {"form": form, "special_client": special_client})
+
+def delete_special_client(request, client_id):
+    """ Delete a special client """
+    special_client = get_object_or_404(SpecialClient, id=client_id)
+    special_client.delete()
+    return redirect("gerant_dashboard:special_client_list")

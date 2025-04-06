@@ -23,4 +23,5 @@ urlpatterns = [
     path("gerant/", include("gerant_dashboard.urls", namespace="gerant_dashboard")),
     path("auth/", include("authentication.urls", namespace="authentication")),
 
+
               ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

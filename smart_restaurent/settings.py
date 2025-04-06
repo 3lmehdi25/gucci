@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # Core App
     "pdg_dashboard",
-
+"django_select2",
     # Other Apps
     "authentication",
     "public",

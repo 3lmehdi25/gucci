@@ -6,12 +6,14 @@
 <h2>Dashboard Management</h2>
 <ul>
     <a href="{% url 'gerant_dashboard:manage_employees' %}">Manage Employees</a>
+    <br>
+    <a href="{% url 'gerant_dashboard:manage_stock' %}">Manage Stock</a>
 
-    <li><a href="#">Manage Stock</a></li>
-    <li><a href="#">View Statistics</a></li>
-    <li><a href="#">Manage Reservations</a></li>
-    <li><a href="#">Manage Expenses</a></li>
-    <li><a href="#">Manage Offers</a></li>
+    <li><a href="{% url 'gerant_dashboard:reservation_list' %}">Manage Reservations</a></li>
+
+    <li><a href="{% url 'gerant_dashboard:list_tables' %}" class="btn btn-secondary">View Tables</a>
+</li>
+    <li><a href="{% url 'gerant_dashboard:special_client_list' %}">Manage clients</a></li>
     <li><a href="#">View History</a></li>
 </ul>
 

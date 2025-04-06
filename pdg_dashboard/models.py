@@ -82,3 +82,8 @@ class Transaction(models.Model):
 
     def __str__(self):
         return f"Transaction {self.id} - {self.store.name} ({self.amount} {self.payment_method})"
+
+
+
+
+

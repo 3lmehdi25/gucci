@@ -18,6 +18,10 @@
     </content>
     <orderEntry type="jdk" jdkName="Python 3.12 (DjangoProject)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="jquery-3.6.0" level="application" />
+    <orderEntry type="library" name="bootstrap-datepicker" level="application" />
+    <orderEntry type="library" name="jquery-timepicker" level="application" />
+    <orderEntry type="library" name="select2" level="application" />
   </component>
   <component name="TemplatesService">
     <option name="TEMPLATE_CONFIGURATION" value="Django" />

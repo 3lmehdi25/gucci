@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Edit Special Client: {{ special_client.user.username }}</h1>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success">Update</button>
+</form>
+
+<a href="{% url 'gerant_dashboard:special_client_list' %}" class="btn btn-secondary">Back to List</a>
+{% endblock %}
