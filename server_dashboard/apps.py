@@ -3,4 +3,4 @@ from django.apps import AppConfig
 
 class ServerDashbordConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'server_dashbord'
+    name = 'server_dashboard'

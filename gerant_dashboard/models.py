@@ -52,12 +52,12 @@ User = get_user_model()
 
 class SpecialClient(models.Model):
     CLIENT_TYPES = [
-        ("enterprise", "Enterprise"),
-        ("fidele", "Fidèle"),
+        ("fidele", "Client fidèle"),
+        ("enterprise", "Entreprise"),
     ]
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="special_client")
-    type = models.CharField(max_length=20, choices=CLIENT_TYPES)
+    type = models.CharField(max_length=20, choices=CLIENT_TYPES, default="simple")
 
     def __str__(self):
         return f"{self.user.username} - {self.get_type_display()}"

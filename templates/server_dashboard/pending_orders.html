@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Commandes en attente</h1>
+<table>
+    <tr>
+        <th>Numéro de commande</th>
+        <th>Client</th>
+        <th>Marquer comme servie</th>
+    </tr>
+    {% for order in orders %}
+    <tr>
+        <td>{{ order.order.id }}</td>
+        <td>{{ order.order.client.username }}</td>
+        <td>
+            <a href="{% url 'server_dashboard:mark_as_served' order.order.id %}">Marquer comme servie</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}
