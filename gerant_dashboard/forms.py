@@ -88,7 +88,9 @@ User = get_user_model()
 
 class SpecialClientForm(forms.ModelForm):
     user = forms.ModelChoiceField(
-        queryset=User.objects.filter(role="client"),
+        queryset=User.objects.filter(role="client").exclude(
+            special_client__type__in=["fidele", "enterprise"]
+        ),
         label="Select Client",
         widget=forms.Select(attrs={"class": "form-control"}),
     )
