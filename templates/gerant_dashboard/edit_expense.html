@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Modifier la Dépense n°{{ expense.number }}</h2>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Mettre à jour</button>
+    <a href="{% url 'gerant_dashboard:expense_list' %}" class="btn btn-secondary">Retour</a>
+</form>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const typeField = document.getElementById("id_type");
+    const categoryField = document.getElementById("id_category");
+
+    const options = {
+        encaissement: ["order"],
+        decaissement: ["facture", "salaire"]
+    };
+
+    function updateCategoryOptions() {
+        const selectedType = typeField.value;
+        const allowed = options[selectedType] || [];
+
+        categoryField.innerHTML = "";
+        allowed.forEach(value => {
+            const option = document.createElement("option");
+            option.value = value;
+            option.textContent = value.charAt(0).toUpperCase() + value.slice(1);
+            categoryField.appendChild(option);
+        });
+
+        // Restore selected category if possible
+        const currentValue = "{{ form.initial.category|default:'' }}";
+        if (currentValue && allowed.includes(currentValue)) {
+            categoryField.value = currentValue;
+        }
+    }
+
+    updateCategoryOptions();
+    typeField.addEventListener("change", updateCategoryOptions);
+});
+</script>
+{% endblock %}

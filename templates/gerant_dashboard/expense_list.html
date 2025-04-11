@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Mes Dépenses</h2>
+<a href="{% url 'gerant_dashboard:add_expense' %}" class="btn btn-success mb-3">Ajouter une Dépense</a>
+
+{% if expenses %}
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Montant (€)</th>
+            <th>Type</th>
+            <th>Catégorie</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for expense in expenses %}
+        <tr>
+            <td>{{ expense.number }}</td>
+            <td>{{ expense.amount }}</td>
+            <td>{{ expense.get_type_display }}</td>
+            <td>{{ expense.get_category_display }}</td>
+            <td>{{ expense.get_payment_status_display }}</td>
+            <td>{{ expense.created_at|date:"Y-m-d H:i" }}</td>
+            <td>
+                <a href="{% url 'gerant_dashboard:edit_expense' expense.id %}" class="btn btn-sm btn-warning">Modifier</a>
+                <a href="{% url 'gerant_dashboard:delete_expense' expense.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Supprimer cette dépense ?');">Supprimer</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>Aucune dépense enregistrée.</p>
+{% endif %}
+{% endblock %}

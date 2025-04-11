@@ -104,3 +104,21 @@ class SpecialClientForm(forms.ModelForm):
     class Meta:
         model = SpecialClient
         fields = ["user", "type"]
+
+
+from django import forms
+from pdg_dashboard.models import Expense
+
+class ExpenseForm(forms.ModelForm):
+    class Meta:
+        model = Expense
+        exclude = ['store', 'created_at', 'number']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 3}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Initially limit category field (overridden dynamically in template)
+        self.fields['category'].choices = Expense.CATEGORY_CHOICES

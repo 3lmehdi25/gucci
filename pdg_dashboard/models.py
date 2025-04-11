@@ -109,3 +109,46 @@ class Transaction(models.Model):
 
 
 
+
+
+from django.db import models
+from django.utils import timezone
+from .models import Store
+
+class Expense(models.Model):
+    EXPENSE_TYPES = [
+        ('encaissement', 'Encaissement'),
+        ('decaissement', 'Décaissement'),
+    ]
+
+    PAYMENT_STATUS = [
+        ('paid', 'Payé'),
+        ('unpaid', 'Non Payé'),
+        ('canceled', 'Annulé'),
+    ]
+
+    CATEGORY_CHOICES = [
+        ('facture', 'Facture'),
+        ('salaire', 'Salaire'),
+        ('order', 'Order'),
+    ]
+
+    store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name="expenses")
+    number = models.PositiveIntegerField(default=0)  # Manual numbering per store
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    type = models.CharField(max_length=20, choices=EXPENSE_TYPES)
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
+    payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS, default='paid')
+    created_at = models.DateTimeField(default=timezone.now)
+    description = models.TextField(blank=True)
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            # New object, assign next number for this store
+            last_expense = Expense.objects.filter(store=self.store).order_by('-number').first()
+            self.number = (last_expense.number + 1) if last_expense else 1
+        super().save(*args, **kwargs)
+    def __str__(self):
+        return f"{self.store.name} - {self.type} #{self.number}"
+
+    class Meta:
+        ordering = ['number']

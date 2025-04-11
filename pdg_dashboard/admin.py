@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import Store, MenuItem, Category, Order, Stock, Transaction
+from .models import Store, MenuItem, Category, Order, Stock, Expense
+
 
 @admin.register(Store)
 class StoreAdmin(admin.ModelAdmin):
@@ -35,8 +36,12 @@ class StockAdmin(admin.ModelAdmin):
     search_fields = ("item",)
     list_filter = ("store",)
 
-@admin.register(Transaction)
-class TransactionAdmin(admin.ModelAdmin):
-    list_display = ("order", "store", "amount", "payment_method", "timestamp")
-    list_filter = ("store", "payment_method")
-    search_fields = ("order__id",)
+
+
+
+@admin.register(Expense)
+class ExpenseAdmin(admin.ModelAdmin):
+    list_display = ("number", "store", "type", "category", "amount", "payment_status", "created_at")
+    list_filter = ("type", "category", "payment_status", "store")
+    search_fields = ("description",)
+    readonly_fields = ("number", "created_at")

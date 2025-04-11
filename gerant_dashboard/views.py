@@ -372,3 +372,60 @@ def delete_special_client(request, client_id):
     special_client = get_object_or_404(SpecialClient, id=client_id)
     special_client.delete()
     return redirect("gerant_dashboard:special_client_list")
+
+
+
+from django.shortcuts import render, get_object_or_404, redirect
+from pdg_dashboard.models import Expense
+from .forms import ExpenseForm  # We'll create this next
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def expense_list(request):
+    store = request.user.managed_store
+    expenses = Expense.objects.filter(store=store).order_by('-created_at')
+    return render(request, "gerant_dashboard/expense_list.html", {"expenses": expenses})
+
+@login_required
+def add_expense(request):
+    store = request.user.managed_store
+    if request.method == "POST":
+        form = ExpenseForm(request.POST)
+        if form.is_valid():
+            expense = form.save(commit=False)
+            expense.store = store
+            expense.save()
+            return redirect("gerant_dashboard:expense_list")
+    else:
+        form = ExpenseForm()
+    return render(request, "gerant_dashboard/add_expense.html", {"form": form})
+
+@login_required
+def edit_expense(request, expense_id):
+    store = request.user.managed_store
+    expense = get_object_or_404(Expense, id=expense_id, store=store)
+    if request.method == "POST":
+        form = ExpenseForm(request.POST, instance=expense)
+        if form.is_valid():
+            form.save()
+            return redirect("gerant_dashboard:expense_list")
+    else:
+        form = ExpenseForm(instance=expense)
+    return render(request, "gerant_dashboard/edit_expense.html", {"form": form, "expense": expense})
+
+@login_required
+def delete_expense(request, expense_id):
+    store = request.user.managed_store
+    expense = get_object_or_404(Expense, id=expense_id, store=store)
+    expense.delete()
+
+    # Reorder numbers after deletion
+    all_expenses = Expense.objects.filter(store=store).order_by('number')
+    for idx, e in enumerate(all_expenses, start=1):
+        if e.number != idx:
+            e.number = idx
+            e.save()
+
+    return redirect("gerant_dashboard:expense_list")
+
+
