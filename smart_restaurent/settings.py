@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     "authentication",
     "public",
     "gerant_dashboard",
-    'server_dashboard',
+    'chef_dashboard',
 ]
 
 
