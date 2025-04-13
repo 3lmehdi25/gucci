@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Modifier la commande</h2>
+
+<form method="post" id="orderForm">
+    {% csrf_token %}
+
+    <label for="order_type">Type de commande:</label>
+    <select name="order_type" id="order_type">
+        <option value="takeaway" {% if selected_type == "takeaway" %}selected{% endif %}>À emporter</option>
+        <option value="dine_in" {% if selected_type == "dine_in" %}selected{% endif %}>Sur place</option>
+    </select>
+
+    <div id="table-section" {% if selected_type == "dine_in" %}style="display: block;"{% else %}style="display: none;"{% endif %}>
+        <label for="table">Table:</label>
+        <select name="table" id="table">
+            {% for table in tables %}
+                <option value="{{ table.id }}" {% if table.id == selected_table %}selected{% endif %}>Table {{ table.number }} ({{ table.seats }} places)</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <label for="notes">Notes:</label><br>
+    <textarea name="notes" rows="3" cols="40" placeholder="Ajoutez une note...">{{ notes }}</textarea>
+
+    <h4>Plats disponibles:</h4>
+    <table>
+        <thead>
+            <tr>
+                <th>Photo</th>
+                <th>Plat</th>
+                <th>Disponible</th>
+                <th>Quantité</th>
+                <th>Alerte</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in dishes_today %}
+            <tr>
+                <td>
+                    {% if item.dish.image %}
+                        <img src="{{ item.dish.image.url }}" alt="{{ item.dish.name }}" width="60" height="60" style="object-fit:cover; border-radius:8px;">
+                    {% else %}
+                        <span style="color: gray;">Pas d'image</span>
+                    {% endif %}
+                </td>
+                <td>{{ item.dish.name }}</td>
+                <td id="stock-{{ item.dish.id }}">{{ item.remaining_quantity }}</td>
+                <td>
+                    <input type="number"
+                        class="dish-qty"
+                        name="dish_{{ item.dish.id }}_quantity"
+                        data-max="{{ item.remaining_quantity }}"
+                        min="0"
+                        value="{{ dish_quantities|get_item:item.dish.id|default:0 }}">
+                </td>
+                <td><span class="warning" id="warning-{{ item.dish.id }}" style="color:red; display:none;">Max atteint</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <button type="submit" id="submitBtn" disabled>Modifier la commande</button>
+</form>
+
+<a href="{% url 'server:orders_list' %}">Retour à la liste des commandes</a>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const qtyInputs = document.querySelectorAll(".dish-qty");
+    const submitBtn = document.getElementById("submitBtn");
+
+    function updateState() {
+        let totalQty = 0;
+
+        qtyInputs.forEach(input => {
+            const warning = document.getElementById("warning-" + input.name.split('_')[1]);
+            const max = parseInt(input.dataset.max);
+            const val = parseInt(input.value) || 0;
+
+            if (val > max) {
+                warning.style.display = "inline";
+                input.classList.add("error");
+            } else {
+                warning.style.display = "none";
+                input.classList.remove("error");
+            }
+
+            totalQty += val;
+        });
+
+        submitBtn.disabled = totalQty === 0 || document.querySelectorAll(".error").length > 0;
+    }
+
+    qtyInputs.forEach(input => {
+        input.addEventListener("input", updateState);
+    });
+
+    // Handle showing table select
+    const orderTypeSelect = document.getElementById("order_type");
+    const tableSection = document.getElementById("table-section");
+
+    orderTypeSelect.addEventListener("change", function () {
+        if (this.value === "dine_in") {
+            tableSection.style.display = "block";
+        } else {
+            tableSection.style.display = "none";
+        }
+    });
+
+    // Initial trigger
+    updateState();
+});
+</script>
+
+{% endblock %}

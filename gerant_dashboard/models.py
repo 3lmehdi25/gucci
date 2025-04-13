@@ -1,5 +1,9 @@
+from datetime import timezone
+
 from django.db import models
-  # Assuming Table model is in gerant_dashboard
+from django.utils.timezone import now
+
+# Assuming Table model is in gerant_dashboard
 from pdg_dashboard.models import Store, Dish
 
 
@@ -24,7 +28,7 @@ class Reservation(models.Model):
     client_name = models.CharField(max_length=255)
     client_contact = models.CharField(max_length=20)
     date = models.DateField()
-    time = models.TimeField()
+    time = models.TimeField(default=now)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='not_reserved')
 
     def __str__(self):

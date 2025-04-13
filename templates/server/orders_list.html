@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    <h2>Liste des commandes</h2>
+
+    <a href="{% url 'server:create_order' %}" class="btn btn-primary">Ajouter une commande</a>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID Commande</th>
+                <th>Client</th>
+                <th>Table</th>
+                <th>Status</th>
+                <th>Total</th>
+                <th>Date de commande</th>
+                <th>Plats Commandés</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+                <tr>
+                    <td>{{ order.id }}</td>
+                    <td>
+                        {% if order.client %}
+                            {{ order.client.username }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if order.table %}
+                            {{ order.table.number }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                    <td>{{ order.status }}</td>
+                    <td>{{ order.total_price }} €</td>
+                    <td>{{ order.created_at|date:"d M Y H:i" }}</td> <!-- Date and Time of the order -->
+                    <td>
+                        {% for order_dish in order.orderdish_set.all %}
+                            <div>
+                                <p>{{ order_dish.dish.name }}</p>
+                                {% if order_dish.dish.image %}
+                                    <img src="{{ order_dish.dish.image.url }}" alt="{{ order_dish.dish.name }}" style="width: 50px; height: 50px;">
+                                {% else %}
+                                    <p>No image available</p>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </td>
+                    <td>
+                        <a href="{% url 'server:edit_order' order.id %}" class="btn btn-warning">Modifier</a>
+                        <a href="{% url 'server:cancel_order' order.id %}" class="btn btn-danger">Annuler</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+<h2>Réservations de tables pour aujourd'hui</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Nom du Client</th>
+            <th>Contact</th>
+            <th>Table</th>
+            <th>Heure</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for reservation in reservations_today %}
+            <tr>
+                <td>{{ reservation.client_name }}</td>
+                <td>{{ reservation.client_contact }}</td>
+                <td>Table {{ reservation.table.number }}</td>
+                <td>{{ reservation.time|time:"H:i" }}</td>
+                <td>{{ reservation.get_status_display }}</td>
+            <td>{{ reservation.date }}</td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="5">Aucune réservation pour aujourd'hui.</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
