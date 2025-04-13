@@ -176,15 +176,7 @@ class DishIngredient(models.Model):
     def __str__(self):
         return f"{self.dish.name} - {self.ingredient.name} ({self.quantity})"
 
-    class MenuItem(models.Model):
-        name = models.CharField(max_length=100)
-        category = models.ForeignKey(Category, on_delete=models.CASCADE)
-        price = models.DecimalField(max_digits=10, decimal_places=2)
-        available = models.BooleanField(default=True)
-        image = models.ImageField(upload_to="menu_photos/", null=True, blank=True)  # Image field
 
-        def __str__(self):
-            return f"{self.name} ({self.category.name})"
 
     # Ensure image is deleted when a menu item is deleted
     @receiver(models.signals.post_delete, sender=dish)
