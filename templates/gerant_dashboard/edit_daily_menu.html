@@ -1,0 +1,15 @@
+<h1>Edit Daily Menu for Today</h1>
+
+<form method="POST">
+  {% csrf_token %}
+
+  <h3>Dishes</h3>
+  {% for dish in dishes %}
+    <div>
+      <label for="quantity_{{ dish.id }}">{{ dish.name }} (Current: {{ dish.existing_quantity }} portions)</label>
+      <input type="number" name="quantity_{{ dish.id }}" value="{{ dish.existing_quantity }}" min="0">
+    </div>
+  {% endfor %}
+
+  <button type="submit">Save Changes</button>
+</form>

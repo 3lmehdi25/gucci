@@ -26,6 +26,12 @@ def chef_dashboard(request):
 from pdg_dashboard.models import Dish
 from chef_dashboard.forms import DailyMenuForm
 
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from pdg_dashboard.models import Dish
+from gerant_dashboard.models import DailyMenu, DailyMenuDish  # adjust as needed
+from chef_dashboard.forms import DailyMenuForm  # or where your form is defined
+
 @login_required
 def declare_daily_menu(request):
     dishes = Dish.objects.all()
@@ -35,6 +41,7 @@ def declare_daily_menu(request):
         if form.is_valid():
             daily_menu = form.save(commit=False)
             daily_menu.created_by = request.user
+            daily_menu.store = request.user.store  # ✅ Assign the chef's store here
             daily_menu.save()
 
             for dish in dishes:
@@ -45,7 +52,6 @@ def declare_daily_menu(request):
                     try:
                         quantity = int(quantity)
                         if quantity > 0:
-                            from gerant_dashboard.models import DailyMenuDish
                             DailyMenuDish.objects.create(
                                 daily_menu=daily_menu,
                                 dish=dish,
@@ -62,4 +68,3 @@ def declare_daily_menu(request):
         'form': form,
         'dishes': dishes
     })
-

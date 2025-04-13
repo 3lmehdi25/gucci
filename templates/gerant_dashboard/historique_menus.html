@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Historique des menus du jour</h2>
+
+{% if menus %}
+    {% for menu in menus %}
+        <div style="margin-bottom: 30px; border-bottom: 1px solid #ccc; padding-bottom: 20px;">
+            <h3>Menu du {{ menu.date }}</h3>
+            <table border="1" cellpadding="10">
+                <thead>
+                    <tr>
+                        <th>Plat</th>
+                        <th>Restaurant</th>
+                        <th>Quantité</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in menu.dailymenudish_set.all %}
+                        <tr>
+                            <td>{{ item.dish.name }}</td>
+                            <td>{{ item.dish.restaurant.name }}</td>
+                            <td>{{ item.quantity }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endfor %}
+{% else %}
+    <p>Aucun menu trouvé.</p>
+{% endif %}
+
+{% endblock %}

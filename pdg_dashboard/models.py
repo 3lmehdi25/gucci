@@ -43,7 +43,7 @@ from django.db import models
 from django.utils import timezone
 from authentication.models import User
 from pdg_dashboard.models import Store
-from gerant_dashboard.models import Table
+from django.apps import apps  # <-- Add this
 
 class Order(models.Model):
     STATUS_CHOICES = [
@@ -56,7 +56,13 @@ class Order(models.Model):
     ]
 
     client = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="orders")
-    table = models.ForeignKey(Table, on_delete=models.SET_NULL, null=True, blank=True, related_name="orders")
+    table = models.ForeignKey(
+        "gerant_dashboard.Table",  # <--- Use app_label.ModelName as string
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="orders"
+    )
     store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name="orders")
 
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")

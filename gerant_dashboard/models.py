@@ -69,12 +69,28 @@ class SpecialClient(models.Model):
 # models.py dans gerant_dashboard
 
 from django.utils import timezone
+from django.db import models
+from django.utils import timezone
+from pdg_dashboard.models import Store, Dish
+from authentication.models import User  # or wherever your custom User model is
 
 class DailyMenu(models.Model):
-    date = models.DateField(default=timezone.now, unique=True)  # Date par défaut est aujourd'hui    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, limit_choices_to={'role': 'gerant'})
-    dishes = models.ManyToManyField("pdg_dashboard.Dish", through="DailyMenuDish")
+    date = models.DateField(default=timezone.now, unique=False)  # remove global uniqueness
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        limit_choices_to={'role': 'gerant'}
+    )
+    store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name="daily_menus")
+    dishes = models.ManyToManyField(Dish, through="DailyMenuDish")
+
+    class Meta:
+        unique_together = ('date', 'store')  # Ensures one menu per store per day
+
     def __str__(self):
-        return f"Menu du {self.date}"
+        return f"Menu du {self.date} ({self.store.name})"
+
 
 
 class DailyMenuDish(models.Model):

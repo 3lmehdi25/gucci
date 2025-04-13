@@ -48,6 +48,8 @@ urlpatterns = [
     path('expenses/delete/<int:expense_id>/', delete_expense, name='delete_expense'),
 
     path('ingredients-du-jour/', views.view_daily_ingredients, name='daily_ingredients'),
-    path('declare-menu/', views.declare_daily_menu, name='declare_daily_menu'),
+    path('historique-menus/', views.historique_menus, name='historique_menus'),
+    path('edit_daily_menu/', views.edit_daily_menu, name='edit_daily_menu'),
+
 ]
 

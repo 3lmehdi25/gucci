@@ -458,42 +458,79 @@ def view_daily_ingredients(request):
         "daily_menu": daily_menu,
         "ingredient_totals": ingredient_totals,
     })
-from pdg_dashboard.models import Dish
-from gerant_dashboard.forms import DailyMenuForm
+
+
+# gerant_dashboard/views.py
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from gerant_dashboard.models import DailyMenu, DailyMenuDish
+from pdg_dashboard.models import Store
 
 @login_required
-def declare_daily_menu(request):
-    dishes = Dish.objects.all()
+def historique_menus(request):
+    try:
+        store = request.user.managed_store  # related_name from Store.gerant
+        menus = DailyMenu.objects.filter(store=store).prefetch_related('dailymenudish_set__dish').order_by('-date')
+    except Store.DoesNotExist:
+        menus = DailyMenu.objects.none()  # In case the user doesn't manage any store
 
+    return render(request, 'gerant_dashboard/historique_menus.html', {'menus': menus})
+
+
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+from datetime import date
+from gerant_dashboard.models import DailyMenu, DailyMenuDish
+from pdg_dashboard.models import Dish
+from django.shortcuts import render, redirect
+from django.utils import timezone
+from .models import DailyMenu, DailyMenuDish, Dish
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def edit_daily_menu(request):
+    today = timezone.now().date()
+    store = request.user.managed_store  # Get the store of the gerant
+
+    # Get the existing daily menu or create one if it doesn't exist
+    try:
+        daily_menu = DailyMenu.objects.get(date=today, store=store)
+    except DailyMenu.DoesNotExist:
+        # If no menu exists for today, let the gerant know or handle accordingly
+        return redirect('gerant_dashboard:create_daily_menu')  # or create new
+
+    # Fetch all dishes for the store
+    dishes = Dish.objects.filter(store=store)
+
+    # Create a dictionary for the existing quantities in the menu
+    quantities = {dm_dish.dish_id: dm_dish.quantity for dm_dish in daily_menu.dailymenudish_set.all()}
+
+    # Attach the existing quantity to each dish
+    for dish in dishes:
+        dish.existing_quantity = quantities.get(dish.id, 0)
+
+    # Handle POST request when the gerant submits the form to update quantities
     if request.method == 'POST':
-        form = DailyMenuForm(request.POST)
-        if form.is_valid():
-            daily_menu = form.save(commit=False)
-            daily_menu.created_by = request.user
-            daily_menu.save()
+        for dish in dishes:
+            quantity = request.POST.get(f'quantity_{dish.id}')
+            if quantity:
+                try:
+                    quantity = int(quantity)
+                    if quantity >= 0:
+                        # Check if dish already exists in the menu and update or create new entry
+                        menu_dish, created = DailyMenuDish.objects.get_or_create(
+                            daily_menu=daily_menu,
+                            dish=dish,
+                        )
+                        menu_dish.quantity = quantity
+                        menu_dish.save()
+                except ValueError:
+                    continue  # Skip invalid quantities
 
-            for dish in dishes:
-                checkbox = request.POST.get(f'dish_{dish.id}')
-                quantity = request.POST.get(f'quantity_{dish.id}')
+        return redirect('gerant_dashboard:historique_menus')  # Redirect to the historical menu page
 
-                if checkbox and quantity:
-                    try:
-                        quantity = int(quantity)
-                        if quantity > 0:
-                            from gerant_dashboard.models import DailyMenuDish
-                            DailyMenuDish.objects.create(
-                                daily_menu=daily_menu,
-                                dish=dish,
-                                quantity=quantity
-                            )
-                    except ValueError:
-                        continue
-
-            return redirect('gerant_dashboard:daily_ingredients')
-    else:
-        form = DailyMenuForm()
-
-    return render(request, 'gerant_dashboard/declare_daily_menu.html', {
-        'form': form,
-        'dishes': dishes
+    return render(request, 'gerant_dashboard/edit_daily_menu.html', {
+        'daily_menu': daily_menu,
+        'dishes': dishes,
     })
