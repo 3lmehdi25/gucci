@@ -1,11 +1,9 @@
 from datetime import date
 
-from django.db.models import Sum
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 
-from pdg_dashboard import models
 from pdg_dashboard.models import Store, Stock
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required

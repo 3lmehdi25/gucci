@@ -9,7 +9,7 @@ from pdg_dashboard.models import User, Stock
 VALID_EMPLOYEE_ROLES = [
     ("caissier", "Caissier"),
     ("serveur", "Serveur"),
-    ("chef", "Chef Cuisinier"),
+    ("chef_cuisinier", "Chef Cuisinier"),
     ("livreur", "Livreur"),
     ("fournisseur", "Fournisseur"),
     ("partenaire_professionnel", "Partenaire Professionnel"),
@@ -36,17 +36,7 @@ class EmployeeCreateForm(forms.ModelForm):
         # Only allow roles from VALID_EMPLOYEE_ROLES
         self.fields["role"].choices = VALID_EMPLOYEE_ROLES
 
-    def save(self, commit=True):
-        user = super().save(commit=False)
 
-        # Hash the password before saving
-        user.set_password(user.password)
-
-       
-
-        if commit:
-            user.save()
-        return user
 
 
 
