@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Déclarer le menu du jour</h2>
+
+<form method="post">
+    {% csrf_token %}
+
+    <div class="form-group mb-4">
+        {{ form.date.label_tag }}<br>
+        {{ form.date }}
+    </div>
+
+    <table border="1" cellpadding="10" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Plat</th>
+                <th>Restaurant</th>
+                <th>Quantité</th>
+                <th>Sélectionner</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for dish in dishes %}
+            <tr>
+                <td>{{ dish.name }}</td>
+                <td>{{ dish.restaurant.name }}</td>
+                <td>
+                    <input type="number" name="quantity_{{ dish.id }}" min="1" style="width: 80px;">
+                </td>
+                <td>
+                    <input type="checkbox" name="dish_{{ dish.id }}">
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <button type="submit" class="btn btn-primary mt-4">Enregistrer le menu</button>
+</form>
+{% endblock %}
