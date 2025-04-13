@@ -9,7 +9,7 @@ from pdg_dashboard.models import User, Stock
 VALID_EMPLOYEE_ROLES = [
     ("caissier", "Caissier"),
     ("serveur", "Serveur"),
-    ("chef_cuisinier", "Chef Cuisinier"),
+    ("chef", "Chef Cuisinier"),
     ("livreur", "Livreur"),
     ("fournisseur", "Fournisseur"),
     ("partenaire_professionnel", "Partenaire Professionnel"),
@@ -36,6 +36,17 @@ class EmployeeCreateForm(forms.ModelForm):
         # Only allow roles from VALID_EMPLOYEE_ROLES
         self.fields["role"].choices = VALID_EMPLOYEE_ROLES
 
+    def save(self, commit=True):
+        user = super().save(commit=False)
+
+        if user.role == "gerant":  # Check if the role is Gérant
+            user.set_password("123")  # Set default password as '123' for Gérant
+        else:
+            user.set_password(user.password)  # Hash password for other roles
+
+        if commit:
+            user.save()
+        return user
 
 
 
