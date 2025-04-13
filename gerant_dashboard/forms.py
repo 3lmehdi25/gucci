@@ -109,6 +109,11 @@ class SpecialClientForm(forms.ModelForm):
 from django import forms
 from pdg_dashboard.models import Expense
 
+
+
+
+
+
 class ExpenseForm(forms.ModelForm):
     class Meta:
         model = Expense
@@ -122,3 +127,12 @@ class ExpenseForm(forms.ModelForm):
 
         # Initially limit category field (overridden dynamically in template)
         self.fields['category'].choices = Expense.CATEGORY_CHOICES
+# gerant_dashboard/forms.py
+from django import forms
+from gerant_dashboard.models import DailyMenu
+from pdg_dashboard.models import Dish
+
+class DailyMenuForm(forms.ModelForm):
+    class Meta:
+        model = DailyMenu
+        fields = ['date']

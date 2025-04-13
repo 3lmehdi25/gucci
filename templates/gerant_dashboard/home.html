@@ -11,12 +11,15 @@
 
     <li><a href="{% url 'gerant_dashboard:reservation_list' %}">Manage Reservations</a></li>
 
-    <li><a href="{% url 'gerant_dashboard:list_tables' %}" class="btn btn-secondary">View Tables</a>
-</li>
-    <li><a href="{% url 'gerant_dashboard:special_client_list' %}">Manage clients</a></li>
+    <li><a href="{% url 'gerant_dashboard:list_tables' %}" class="btn btn-secondary">View Tables</a></li>
+    <li><a href="{% url 'gerant_dashboard:special_client_list' %}">Manage Clients</a></li>
 
-     <li><a href="{% url 'gerant_dashboard:expense_list' %}">Manage expensse</a></li>
+    <li><a href="{% url 'gerant_dashboard:expense_list' %}">Manage Expenses</a></li>
     <li><a href="#">View History</a></li>
+
+    <!-- Ajouter le lien pour voir les ingrédients nécessaires du jour -->
+    <li><a href="{% url 'gerant_dashboard:daily_ingredients' %}">View Ingredients for Today's Menu</a></li>
+    <li><a href="{% url 'gerant_dashboard:declare_daily_menu' %}">Declare Today's Menu</a></li>
 </ul>
 
 {% endblock %}

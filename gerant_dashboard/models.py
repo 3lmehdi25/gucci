@@ -64,3 +64,23 @@ class SpecialClient(models.Model):
         return f"{self.user.username} - {self.get_type_display()}"
 
 
+
+
+# models.py dans gerant_dashboard
+
+from django.utils import timezone
+
+class DailyMenu(models.Model):
+    date = models.DateField(default=timezone.now, unique=True)  # Date par défaut est aujourd'hui    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, limit_choices_to={'role': 'gerant'})
+    dishes = models.ManyToManyField("pdg_dashboard.Dish", through="DailyMenuDish")
+    def __str__(self):
+        return f"Menu du {self.date}"
+
+
+class DailyMenuDish(models.Model):
+    daily_menu = models.ForeignKey(DailyMenu, on_delete=models.CASCADE)
+    dish = models.ForeignKey("pdg_dashboard.Dish", on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField()  # Nombre de portions prévues
+
+    class Meta:
+        unique_together = ('daily_menu', 'dish')

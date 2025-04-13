@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Ingrédients nécessaires pour le {{ daily_menu.date }}</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Ingrédient</th>
+            <th>Quantité nécessaire</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for ingredient, quantity in ingredient_totals.items %}
+        <tr>
+            <td>{{ ingredient.name }}</td>  <!-- Utilisation correcte de l'attribut name de l'objet Ingredient -->
+            <td>{{ quantity }}</td>  <!-- Affichage de la quantité -->
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

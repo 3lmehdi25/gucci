@@ -1,4 +1,5 @@
 from django.urls import path
+from . import views  # Ajoute cette ligne
 from .views import gerant_dashboard, manage_employees, add_employee, \
     delete_employee, edit_employee, manage_stock, add_stock, edit_stock, \
     delete_stock, \
@@ -46,6 +47,7 @@ urlpatterns = [
     path('expenses/edit/<int:expense_id>/', edit_expense, name='edit_expense'),
     path('expenses/delete/<int:expense_id>/', delete_expense, name='delete_expense'),
 
-
+    path('ingredients-du-jour/', views.view_daily_ingredients, name='daily_ingredients'),
+    path('declare-menu/', views.declare_daily_menu, name='declare_daily_menu'),
 ]
 

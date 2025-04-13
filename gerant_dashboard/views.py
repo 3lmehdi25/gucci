@@ -429,3 +429,71 @@ def delete_expense(request, expense_id):
     return redirect("gerant_dashboard:expense_list")
 
 
+
+
+# gerant_dashboard/views.py
+from django.shortcuts import render, get_object_or_404
+from .models import DailyMenu
+from .utils import calculate_ingredient_needs
+from datetime import date
+from django.shortcuts import render
+from .models import DailyMenu
+from .utils import calculate_ingredient_needs
+from datetime import date
+
+def view_daily_ingredients(request):
+    # Récupérer le menu du jour
+    daily_menu = DailyMenu.objects.filter(date=date.today()).first()
+
+    if not daily_menu:
+        return render(request, "gerant_dashboard/no_menu_today.html")
+
+    # Calcul des besoins en ingrédients
+    ingredient_totals = calculate_ingredient_needs(daily_menu)
+
+    # Conversion du defaultdict en dictionnaire classique pour le rendre facilement manipulable
+    ingredient_totals = dict(ingredient_totals)
+
+    return render(request, "gerant_dashboard/ingredient_needs.html", {
+        "daily_menu": daily_menu,
+        "ingredient_totals": ingredient_totals,
+    })
+from pdg_dashboard.models import Dish
+from gerant_dashboard.forms import DailyMenuForm
+
+@login_required
+def declare_daily_menu(request):
+    dishes = Dish.objects.all()
+
+    if request.method == 'POST':
+        form = DailyMenuForm(request.POST)
+        if form.is_valid():
+            daily_menu = form.save(commit=False)
+            daily_menu.created_by = request.user
+            daily_menu.save()
+
+            for dish in dishes:
+                checkbox = request.POST.get(f'dish_{dish.id}')
+                quantity = request.POST.get(f'quantity_{dish.id}')
+
+                if checkbox and quantity:
+                    try:
+                        quantity = int(quantity)
+                        if quantity > 0:
+                            from gerant_dashboard.models import DailyMenuDish
+                            DailyMenuDish.objects.create(
+                                daily_menu=daily_menu,
+                                dish=dish,
+                                quantity=quantity
+                            )
+                    except ValueError:
+                        continue
+
+            return redirect('gerant_dashboard:daily_ingredients')
+    else:
+        form = DailyMenuForm()
+
+    return render(request, 'gerant_dashboard/declare_daily_menu.html', {
+        'form': form,
+        'dishes': dishes
+    })

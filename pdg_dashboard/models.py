@@ -28,22 +28,6 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
-class MenuItem(models.Model):
-    name = models.CharField(max_length=100)
-    category = models.ForeignKey(Category, on_delete=models.CASCADE)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    available = models.BooleanField(default=True)
-    image = models.ImageField(upload_to="menu_photos/", null=True, blank=True)  # Image field
-
-    def __str__(self):
-        return f"{self.name} ({self.category.name})"
-
-# Ensure image is deleted when a menu item is deleted
-@receiver(models.signals.post_delete, sender=MenuItem)
-def delete_menu_item_image(sender, instance, **kwargs):
-    if instance.image:
-        if os.path.isfile(instance.image.path):
-            os.remove(instance.image.path)
 
 
 class Employee(models.Model):
@@ -152,3 +136,58 @@ class Expense(models.Model):
 
     class Meta:
         ordering = ['number']
+
+
+class Ingredient(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    unit = models.CharField(max_length=20, default="g")  # Exemple: g, kg, L, etc.
+
+    def __str__(self):
+        return f"{self.name} ({self.unit})"
+
+
+
+
+
+
+
+
+
+
+
+
+class Dish(models.Model):
+    name = models.CharField(max_length=100)
+    category = models.ForeignKey('Category', on_delete=models.CASCADE, related_name="dishes")
+    store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name="dishes")  # Chaque plat est lié à un restaurant
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    available = models.BooleanField(default=True)
+    image = models.ImageField(upload_to="menu_photos/", null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.name} - {self.category.name} ({self.store.name})"
+
+
+class DishIngredient(models.Model):
+    dish = models.ForeignKey(Dish, on_delete=models.CASCADE, related_name="ingredients")
+    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
+    quantity = models.FloatField(help_text="Quantité nécessaire par plat (ex: 150g, 0.5L, etc.)")
+
+    def __str__(self):
+        return f"{self.dish.name} - {self.ingredient.name} ({self.quantity})"
+
+    class MenuItem(models.Model):
+        name = models.CharField(max_length=100)
+        category = models.ForeignKey(Category, on_delete=models.CASCADE)
+        price = models.DecimalField(max_digits=10, decimal_places=2)
+        available = models.BooleanField(default=True)
+        image = models.ImageField(upload_to="menu_photos/", null=True, blank=True)  # Image field
+
+        def __str__(self):
+            return f"{self.name} ({self.category.name})"
+
+    # Ensure image is deleted when a menu item is deleted
+    @receiver(models.signals.post_delete, sender=dish)
+    def delete_dish_image(sender, instance, **kwargs):
+        if instance.image and os.path.isfile(instance.image.path):
+            os.remove(instance.image.path)

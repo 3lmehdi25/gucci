@@ -1,7 +1,14 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import Store, MenuItem, Category, Order, Stock, Expense
+from .models import Store, Category, Order, Stock, Expense, Dish, DishIngredient, Ingredient
+
+
+class DishIngredientInline(admin.TabularInline):
+    model = DishIngredient
+    extra = 1
+    autocomplete_fields = ["ingredient"]  # Optionnel mais pratique
+    min_num = 0
 
 
 @admin.register(Store)
@@ -14,15 +21,28 @@ class StoreAdmin(admin.ModelAdmin):
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ("name",)
 
-@admin.register(MenuItem)
-class MenuAdmin(admin.ModelAdmin):
-    list_display = ("name", "category", "price", "available", "menu_image")
+@admin.register(Dish)
+class DishAdmin(admin.ModelAdmin):
+    list_display = ("name", "category", "price", "available", "dish_image")
+    inlines = [DishIngredientInline]  # 👈 ajoute ça ici
 
-    def menu_image(self, obj):
+    def dish_image(self, obj):
         if obj.image:
             return format_html(f'<img src="{obj.image.url}" width="50" height="50" />')
         return "No Image"
-    menu_image.short_description = "Image"
+    dish_image.short_description = "Image"
+
+
+@admin.register(Ingredient)
+class IngredientAdmin(admin.ModelAdmin):
+    list_display = ("name", "unit")
+    search_fields = ("name",)
+
+@admin.register(DishIngredient)
+class DishIngredientAdmin(admin.ModelAdmin):
+    list_display = ("dish", "ingredient", "quantity")
+    search_fields = ("dish__name", "ingredient__name")
+
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
@@ -35,8 +55,6 @@ class StockAdmin(admin.ModelAdmin):
     list_display = ("item", "store", "quantity")
     search_fields = ("item",)
     list_filter = ("store",)
-
-
 
 
 @admin.register(Expense)
