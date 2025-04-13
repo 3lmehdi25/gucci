@@ -8,7 +8,7 @@ from .views import gerant_dashboard, manage_employees, add_employee, \
     add_reservation, complete_reservation, reservation_history, \
     special_client_list, add_special_client, \
     edit_special_client, delete_special_client, expense_list, add_expense, \
-    edit_expense, delete_expense  # Only include the home view for now
+    edit_expense, delete_expense, today_sales_view, historic_sales_view  # Only include the home view for now
 
 app_name = "gerant_dashboard"
 
@@ -49,7 +49,10 @@ urlpatterns = [
 
     path('ingredients-du-jour/', views.view_daily_ingredients, name='daily_ingredients'),
     path('historique-menus/', views.historique_menus, name='historique_menus'),
-    path('edit_daily_menu/', views.edit_daily_menu, name='edit_daily_menu'),
+
+    path("sales/today/", today_sales_view, name="today_sales"),
+path("sales/history/", historic_sales_view, name="historic_sales"),
+
 
 ]
 

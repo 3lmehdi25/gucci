@@ -31,6 +31,7 @@ from django.shortcuts import render, redirect
 from pdg_dashboard.models import Dish
 from gerant_dashboard.models import DailyMenu, DailyMenuDish  # adjust as needed
 from chef_dashboard.forms import DailyMenuForm  # or where your form is defined
+from gerant_dashboard.models import DailyMenu, DailyMenuDish, MenuOfToday, MenuOfTodayDish  # ✅ add new models
 
 @login_required
 def declare_daily_menu(request):
@@ -41,8 +42,10 @@ def declare_daily_menu(request):
         if form.is_valid():
             daily_menu = form.save(commit=False)
             daily_menu.created_by = request.user
-            daily_menu.store = request.user.store  # ✅ Assign the chef's store here
+            daily_menu.store = request.user.store
             daily_menu.save()
+
+            menu_dish_list = []  # store dishes added to DailyMenu
 
             for dish in dishes:
                 checkbox = request.POST.get(f'dish_{dish.id}')
@@ -57,8 +60,24 @@ def declare_daily_menu(request):
                                 dish=dish,
                                 quantity=quantity
                             )
+                            menu_dish_list.append((dish, quantity))
                     except ValueError:
                         continue
+
+            # ✅ Create MenuOfToday automatically from DailyMenu
+            menu_of_today = MenuOfToday.objects.create(
+                store=request.user.store,
+                generated_from=daily_menu,
+                date=daily_menu.date
+            )
+
+            for dish, quantity in menu_dish_list:
+                MenuOfTodayDish.objects.create(
+                    menu_of_today=menu_of_today,
+                    dish=dish,
+                    initial_quantity=quantity,
+                    sold_quantity=0  # by default
+                )
 
             return redirect('chef_dashboard:home')
     else:

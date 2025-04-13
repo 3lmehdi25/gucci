@@ -1,0 +1,33 @@
+<!-- order_creation.html -->
+<form method="POST">
+    {% csrf_token %}
+    <h3>Select Dishes</h3>
+    <ul>
+        {% for available_dish in available_dishes %}
+            <li>
+                {{ available_dish.dish.name }} - Available: {{ available_dish.available_quantity }}
+                <input type="checkbox" name="dishes" value="{{ available_dish.dish.id }}" {% if available_dish.available_quantity <= 0 %}disabled{% endif %}>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <label for="is_livraison">Delivery</label>
+    <input type="checkbox" name="is_livraison" id="is_livraison">
+
+    <div id="table-selection">
+        <label for="table">Select Table</label>
+        <select name="table" id="table">
+            <!-- Dynamically populate this with tables available for the store -->
+        </select>
+    </div>
+
+    <button type="submit">Create Order</button>
+</form>
+
+<script>
+    // Disable table selection if it's a delivery order
+    document.getElementById('is_livraison').addEventListener('change', function() {
+        const tableSelection = document.getElementById('table-selection');
+        tableSelection.style.display = this.checked ? 'none' : 'block';
+    });
+</script>

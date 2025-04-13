@@ -1,0 +1,19 @@
+<h2>Historique des Menus</h2>
+
+{% if history %}
+    {% for menu in history %}
+        <h4>{{ menu.date }} - {{ menu.store.name }}</h4>
+        <ul>
+            {% for dish in menu.dishes.all %}
+                <li>
+                    {{ dish.dish.name }} :
+                    Vendus: {{ dish.sold_quantity }} /
+                    Initial: {{ dish.initial_quantity }} /
+                    Restant: {{ dish.remaining_quantity }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% endfor %}
+{% else %}
+    <p>Aucun historique disponible.</p>
+{% endif %}

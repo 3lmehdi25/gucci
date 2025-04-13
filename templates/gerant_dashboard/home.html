@@ -17,9 +17,10 @@
     <li><a href="{% url 'gerant_dashboard:expense_list' %}">Manage Expenses</a></li>
     <li><a href="{% url 'gerant_dashboard:historique_menus' %}">View Menu History</a></li>
 
-    <li><a href="{% url 'gerant_dashboard:edit_daily_menu' %}">edit_daily_menu</a></li>
+
     <!-- Ajouter le lien pour voir les ingrédients nécessaires du jour -->
     <li><a href="{% url 'gerant_dashboard:daily_ingredients' %}">View Ingredients for Today's Menu</a></li>
+  <li><a href="{% url 'gerant_dashboard:today_sales' %}">sale of today</a></li>
 </ul>
 
 {% endblock %}

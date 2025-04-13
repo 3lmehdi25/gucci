@@ -4,14 +4,14 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 
-from pdg_dashboard.models import Store, Stock
+from pdg_dashboard.models import Store, Stock, Order
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from authentication.models import User
 from pdg_dashboard.models import Store
 from .forms import EmployeeEditForm, EmployeeCreateForm, StockForm, TableForm, ReservationForm, SpecialClientForm
-from .models import Reservation, Table, ReservationHistory, SpecialClient
+from .models import Reservation, Table, ReservationHistory, SpecialClient, MenuOfToday, MenuOfTodayDish
 from django.contrib.auth import get_user_model
 
 User = get_user_model()  # This ensures you're using 'authentication.User'
@@ -533,4 +533,33 @@ def edit_daily_menu(request):
     return render(request, 'gerant_dashboard/edit_daily_menu.html', {
         'daily_menu': daily_menu,
         'dishes': dishes,
+    })
+
+
+
+@login_required
+def today_sales_view(request):
+    store = request.user.store  # Assuming each gérant is linked to one store
+    today = timezone.now().date()
+
+    menu_today = MenuOfToday.objects.filter(store=store, date=today).first()
+
+    dishes_today = []
+    if menu_today:
+        dishes_today = MenuOfTodayDish.objects.filter(menu_of_today=menu_today).select_related('dish')
+
+    return render(request, 'gerant_dashboard/today_sales.html', {
+        'menu_today': menu_today,
+        'dishes_today': dishes_today,
+        'today': today,
+    })
+
+@login_required
+def historic_sales_view(request):
+    store = request.user.store
+
+    history = MenuOfToday.objects.filter(store=store).exclude(date=timezone.now().date()).order_by('-date')
+
+    return render(request, 'gerant_dashboard/historic_sales.html', {
+        'history': history,
     })

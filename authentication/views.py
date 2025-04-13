@@ -55,4 +55,6 @@ def redirect_dashboard(user):
         return redirect("gerant_dashboard:home")
     elif user.role == "chef":
         return redirect("chef_dashboard:home")
+    elif user.role == "serveur":
+        return redirect("server:home")
     return redirect("public:home")  # Default for other users

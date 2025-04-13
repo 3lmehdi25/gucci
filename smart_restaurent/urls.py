@@ -23,6 +23,8 @@ urlpatterns = [
     path("gerant/", include("gerant_dashboard.urls", namespace="gerant_dashboard")),
     path("auth/", include("authentication.urls", namespace="authentication")),
     path("chef/", include("chef_dashboard.urls", namespace="chef_dashboard")),
+    path('server/', include('server.urls')),
+
 
 
 

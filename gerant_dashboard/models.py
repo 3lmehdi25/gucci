@@ -1,7 +1,6 @@
 from django.db import models
   # Assuming Table model is in gerant_dashboard
-from pdg_dashboard.models import Store
-
+from pdg_dashboard.models import Store, Dish
 
 
 class Table(models.Model):
@@ -71,32 +70,65 @@ class SpecialClient(models.Model):
 from django.utils import timezone
 from django.db import models
 from django.utils import timezone
-from pdg_dashboard.models import Store, Dish
+
 from authentication.models import User  # or wherever your custom User model is
 
+
 class DailyMenu(models.Model):
-    date = models.DateField(default=timezone.now, unique=False)  # remove global uniqueness
+    date = models.DateField(default=timezone.now)
     created_by = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
         null=True,
-        limit_choices_to={'role': 'gerant'}
+        limit_choices_to={'role': 'chef'}  # If it's declared by chef
     )
     store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name="daily_menus")
     dishes = models.ManyToManyField(Dish, through="DailyMenuDish")
 
     class Meta:
-        unique_together = ('date', 'store')  # Ensures one menu per store per day
+        unique_together = ('date', 'store')  # One menu per store per day
 
     def __str__(self):
         return f"Menu du {self.date} ({self.store.name})"
 
 
-
 class DailyMenuDish(models.Model):
     daily_menu = models.ForeignKey(DailyMenu, on_delete=models.CASCADE)
-    dish = models.ForeignKey("pdg_dashboard.Dish", on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField()  # Nombre de portions prévues
+    dish = models.ForeignKey(Dish, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField()
 
     class Meta:
         unique_together = ('daily_menu', 'dish')
+
+    def __str__(self):
+        return f"{self.dish.name} - {self.quantity} portions"
+
+
+
+class MenuOfToday(models.Model):
+    date = models.DateField(default=timezone.now)
+    store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name="menus_of_today")
+    generated_from = models.OneToOneField(DailyMenu, on_delete=models.CASCADE, related_name="menu_of_today")
+
+    class Meta:
+        unique_together = ('date', 'store')
+
+    def __str__(self):
+        return f"Menu of Today - {self.date} ({self.store.name})"
+
+
+class MenuOfTodayDish(models.Model):
+    menu_of_today = models.ForeignKey(MenuOfToday, on_delete=models.CASCADE, related_name="dishes")
+    dish = models.ForeignKey(Dish, on_delete=models.CASCADE)
+    initial_quantity = models.PositiveIntegerField()
+    sold_quantity = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        unique_together = ('menu_of_today', 'dish')
+
+    @property
+    def remaining_quantity(self):
+        return self.initial_quantity - self.sold_quantity
+
+    def __str__(self):
+        return f"{self.dish.name} - {self.remaining_quantity()} remaining"
