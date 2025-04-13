@@ -30,3 +30,30 @@ def check_and_update_client_fidelity(user):
         if total_orders >= FIDELITY_ORDER_COUNT or total_spent >= FIDELITY_SPENDING_AMOUNT:
             # Créer un SpecialClient de type "fidele" si conditions sont remplies
             SpecialClient.objects.create(user=user, type="fidele")
+
+
+
+
+# gerant_dashboard/utils.py
+
+from collections import defaultdict
+
+def calculate_ingredient_needs(daily_menu):
+    """
+    Retourne un dictionnaire {ingredient: quantité totale nécessaire}
+    basé sur les plats et quantités du menu journalier.
+    """
+    from pdg_dashboard.models import DishIngredient
+
+    ingredient_totals = defaultdict(float)
+
+    for daily_dish in daily_menu.dailymenudish_set.select_related('dish'):
+        dish = daily_dish.dish
+        quantity = daily_dish.quantity
+
+        for dish_ingredient in DishIngredient.objects.filter(dish=dish).select_related('ingredient'):
+            ingredient = dish_ingredient.ingredient
+            needed = dish_ingredient.quantity * quantity
+            ingredient_totals[ingredient] += needed
+
+    return ingredient_totals
