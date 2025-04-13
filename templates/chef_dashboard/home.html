@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+  <h2>Bienvenue, Chef {{ chef.username }}</h2>
+  {% if store %}
+    <p>Vous travaillez au restaurant : <strong>{{ store.name }}</strong></p>
+  {% else %}
+    <p>Vous n'êtes pas encore affecté à un restaurant.</p>
+  {% endif %}
+{% endblock %}

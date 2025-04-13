@@ -33,7 +33,7 @@ class Category(models.Model):
 class Employee(models.Model):
     store = models.ForeignKey(Store, on_delete=models.CASCADE)
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    position = models.CharField(max_length=50, choices=[("chef", "Chef"), ("server", "Serveur")])
+    position = models.CharField(max_length=50, choices=[ ("chef_cuisinier", "Chef Cuisinier"), ("server", "Serveur")])
 
     def __str__(self):
         return f"{self.user.username} - {self.position}"
