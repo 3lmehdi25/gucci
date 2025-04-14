@@ -82,6 +82,9 @@ class Order(models.Model):
     def __str__(self):
         return f"Order #{self.id} - {self.store.name} - {self.status}"
 
+
+
+
 class OrderDish(models.Model):
     order = models.ForeignKey('Order', on_delete=models.CASCADE)
     dish = models.ForeignKey('Dish', on_delete=models.CASCADE)
@@ -128,7 +131,7 @@ class Expense(models.Model):
     PAYMENT_STATUS = [
         ('paid', 'Payé'),
         ('unpaid', 'Non Payé'),
-        ('canceled', 'Annulé'),
+
     ]
 
     CATEGORY_CHOICES = [

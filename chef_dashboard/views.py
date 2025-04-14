@@ -1,6 +1,9 @@
+from datetime import timezone
+
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import get_user_model
+from django.views.decorators.http import require_POST
 
 User = get_user_model()
 
@@ -23,7 +26,7 @@ def chef_dashboard(request):
 
 
 
-from pdg_dashboard.models import Dish
+from pdg_dashboard.models import Dish, Order
 from chef_dashboard.forms import DailyMenuForm
 
 from django.contrib.auth.decorators import login_required
@@ -87,3 +90,35 @@ def declare_daily_menu(request):
         'form': form,
         'dishes': dishes
     })
+@login_required
+def chef_orders_view(request):
+    if not is_chef(request.user):
+        return redirect("authentication:login")
+
+    store = request.user.store
+
+
+    # Exclude 'served', 'done', and 'cancelled'
+    orders = Order.objects.filter(
+        store=store,
+
+    ).exclude(status__in=["done", "cancelled", "served"])
+
+    return render(request, "chef_dashboard/chef_orders.html", {
+        "orders": orders
+    })
+
+@require_POST
+@login_required
+def chef_update_order_status(request, order_id):
+    if not is_chef(request.user):
+        return redirect("authentication:login")
+
+    order = get_object_or_404(Order, id=order_id, store=request.user.store)
+
+    new_status = request.POST.get("status")
+    if new_status and new_status != "done":
+        order.status = new_status
+        order.save()
+
+    return redirect("chef_dashboard:chef_orders_view")

@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+  <h2>Bienvenue, caissier {{ caissier.username }}</h2>
+  {% if store %}
+    <p>Vous travaillez au restaurant : <strong>{{ store.name }}</strong></p>
+
+  {% endif %}
+     <a href="{% url 'caissier:served_orders' %}">➕ Créer une commande</a>
+{% endblock %}

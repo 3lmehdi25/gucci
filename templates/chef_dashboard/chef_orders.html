@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Today's Orders</h2>
+
+    {% if orders %}
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Client</th>
+                <th>Status</th>
+                <th>Change Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td>{{ order.id }}</td>
+                <td>{{ order.client.username }}</td>
+                <td>{{ order.status }}</td>
+                <td>
+                    <form method="post" action="{% url 'chef_dashboard:chef_update_order_status' order.id %}">
+    {% csrf_token %}
+    <select name="status">
+        {% for value, label in order.STATUS_CHOICES %}
+            {% if value != "done" and value != "cancelled" %}  {# hide "done" and "cancelled" only #}
+                <option value="{{ value }}" {% if order.status == value %}selected{% endif %}>
+                    {{ label }}
+                </option>
+            {% endif %}
+        {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-primary btn-sm">Mettre à jour</button>
+</form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p>No orders for today.</p>
+    {% endif %}
+</div>
+{% endblock %}

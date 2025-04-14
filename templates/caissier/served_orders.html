@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Commandes Servies – Sur Place</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Client</th>
+            <th>Total</th>
+            <th>Table</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for order in dine_in_orders %}
+        <tr>
+            <td>{{ order.id }}</td>
+            <td>{{ order.client.username |default:'unknow' }}</td>
+            <td>{{ order.total_price }} €</td>
+            <td>{% if order.table %}{{ order.table.number }}{% else %}N/A{% endif %}</td>
+            <td>
+                <a href="{% url 'caissier:order_detail' order.id %}">Détails</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">Aucune commande servie sur place.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h2>Commandes Servies – À Emporter</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Client</th>
+            <th>Total</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for order in takeaway_orders %}
+        <tr>
+            <td>{{ order.id }}</td>
+            <td>{{ order.client.username |default:'unknow' }}</td>
+            <td>{{ order.total_price }} €</td>
+            <td>
+                <a href="{% url 'caissier:order_detail' order.id %}">Détails</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4">Aucune commande à emporter servie.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

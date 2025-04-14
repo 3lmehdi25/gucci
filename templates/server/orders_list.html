@@ -42,19 +42,22 @@
                     <td>{{ order.created_at|date:"d M Y H:i" }}</td> <!-- Date and Time of the order -->
                     <td>
                         {% for order_dish in order.orderdish_set.all %}
-                            <div>
+
                                 <p>{{ order_dish.dish.name }}</p>
-                                {% if order_dish.dish.image %}
-                                    <img src="{{ order_dish.dish.image.url }}" alt="{{ order_dish.dish.name }}" style="width: 50px; height: 50px;">
-                                {% else %}
-                                    <p>No image available</p>
-                                {% endif %}
-                            </div>
+
+
                         {% endfor %}
                     </td>
                     <td>
-                        <a href="{% url 'server:edit_order' order.id %}" class="btn btn-warning">Modifier</a>
-                        <a href="{% url 'server:cancel_order' order.id %}" class="btn btn-danger">Annuler</a>
+
+                      <td>
+    {% if order.status == "pending" %}
+        <a href="{% url 'server:cancel_order' order.id %}" class="btn btn-danger">Annuler</a>
+    {% else %}
+        <span class="text-muted">Non annulable</span>
+    {% endif %}
+</td>
+
                     </td>
                 </tr>
             {% endfor %}
@@ -63,7 +66,7 @@
 
 <h2>Réservations de tables pour aujourd'hui</h2>
 
-<table>
+<table id="reservation-table">
     <thead>
         <tr>
             <th>Nom du Client</th>
@@ -71,23 +74,39 @@
             <th>Table</th>
             <th>Heure</th>
             <th>Status</th>
+            <th>Date</th>
         </tr>
     </thead>
     <tbody>
-        {% for reservation in reservations_today %}
-            <tr>
+        {% for reservation in reservations %}
+           <tr class="reservation-row" data-date="{{ reservation.date|date:'Y-m-d' }}">
+
                 <td>{{ reservation.client_name }}</td>
                 <td>{{ reservation.client_contact }}</td>
                 <td>Table {{ reservation.table.number }}</td>
                 <td>{{ reservation.time|time:"H:i" }}</td>
                 <td>{{ reservation.get_status_display }}</td>
-            <td>{{ reservation.date }}</td>
-            </tr>
-        {% empty %}
-            <tr>
-                <td colspan="5">Aucune réservation pour aujourd'hui.</td>
+                <td>{{ reservation.date }}</td>
             </tr>
         {% endfor %}
     </tbody>
 </table>
+ <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        const todayStr = `${yyyy}-${mm}-${dd}`;
+
+        const rows = document.querySelectorAll(".reservation-row");
+
+        rows.forEach(row => {
+            const rowDate = row.getAttribute("data-date");
+            if (rowDate !== todayStr) {
+                row.style.display = "none";
+            }
+        });
+    });
+</script>
 {% endblock %}

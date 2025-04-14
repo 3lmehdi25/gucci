@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "gerant_dashboard",
     'chef_dashboard',
     'server',
+    'caissier',
 
 ]
 
