@@ -31,7 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'jazzmin',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -40,15 +40,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # Core App
     "pdg_dashboard",
-"django_select2",
+    "django_select2",
     # Other Apps
     "authentication",
     "public",
     "gerant_dashboard",
     'chef_dashboard',
-    'server',
-    'caissier',
-
+    'fournisseur_dashboard',
 ]
 
 

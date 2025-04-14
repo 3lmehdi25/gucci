@@ -1,0 +1,17 @@
+<h2>Répondre à la demande</h2>
+<form method="post">
+    {% csrf_token %}
+    <p>{{ req.ingredient.name }} ({{ req.quantity_requested }})</p>
+    <label>Accepter :
+        <select name="accepted">
+            <option value="yes">Oui</option>
+            <option value="no">Non</option>
+        </select>
+    </label>
+    <br>
+    <label>Commentaire :
+        <textarea name="comment"></textarea>
+    </label>
+    <br>
+    <button type="submit">Envoyer la réponse</button>
+</form>

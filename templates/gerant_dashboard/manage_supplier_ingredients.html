@@ -1,0 +1,40 @@
+<h2>Gérer les ingrédients pour {{ supplier.name }}</h2>
+
+<form method="POST">
+  {% csrf_token %}
+  <div id="formset-container">
+    {{ formset.management_form }}
+    {% for form in formset %}
+      <div class="ingredient-form">
+        {{ form.as_p }}
+      </div>
+    {% endfor %}
+  </div>
+
+  <button type="button" id="add-form">➕ Ajouter un ingrédient</button>
+  <button type="submit">✅ Enregistrer</button>
+</form>
+
+<script>
+  const formsetContainer = document.getElementById('formset-container');
+  const addFormBtn = document.getElementById('add-form');
+  let totalForms = document.getElementById('id_form-TOTAL_FORMS');
+
+  addFormBtn.addEventListener('click', function() {
+    const currentFormCount = parseInt(totalForms.value);
+    const newForm = formsetContainer.querySelector('.ingredient-form')?.cloneNode(true);
+
+    if (newForm) {
+      const regex = new RegExp(`form-(\\d+)-`, 'g');
+      newForm.innerHTML = newForm.innerHTML.replace(regex, `form-${currentFormCount}-`);
+
+      // Réinitialiser les champs
+      newForm.querySelectorAll('input, select').forEach(el => {
+        el.value = '';
+      });
+
+      formsetContainer.appendChild(newForm);
+      totalForms.value = currentFormCount + 1;
+    }
+  });
+</script>

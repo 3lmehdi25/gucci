@@ -4,14 +4,14 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 
-from pdg_dashboard.models import Store, Stock, Order
+from pdg_dashboard.models import Store, Stock
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from authentication.models import User
 from pdg_dashboard.models import Store
 from .forms import EmployeeEditForm, EmployeeCreateForm, StockForm, TableForm, ReservationForm, SpecialClientForm
-from .models import Reservation, Table, ReservationHistory, SpecialClient, MenuOfToday, MenuOfTodayDish
+from .models import Reservation, Table, ReservationHistory, SpecialClient
 from django.contrib.auth import get_user_model
 
 User = get_user_model()  # This ensures you're using 'authentication.User'
@@ -429,35 +429,71 @@ def delete_expense(request, expense_id):
     return redirect("gerant_dashboard:expense_list")
 
 
-
-
-# gerant_dashboard/views.py
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, redirect
 from .models import DailyMenu
 from .utils import calculate_ingredient_needs
 from datetime import date
-from django.shortcuts import render
-from .models import DailyMenu
-from .utils import calculate_ingredient_needs
-from datetime import date
+from pdg_dashboard.models import Supplier, SupplierIngredientRequest, Ingredient, Store
 
+from django.shortcuts import render, redirect, get_object_or_404
+from datetime import date
+from pdg_dashboard.models import Ingredient, Supplier, SupplierIngredient, SupplierIngredientRequest
+from gerant_dashboard.models import DailyMenu
+from gerant_dashboard.utils import calculate_ingredient_needs
+from django.contrib.auth.decorators import login_required
+
+
+@login_required
 def view_daily_ingredients(request):
-    # Récupérer le menu du jour
-    daily_menu = DailyMenu.objects.filter(date=date.today()).first()
+    daily_menu = DailyMenu.objects.filter(date=date.today(), store=request.user.managed_store).first()
 
     if not daily_menu:
         return render(request, "gerant_dashboard/no_menu_today.html")
 
     # Calcul des besoins en ingrédients
-    ingredient_totals = calculate_ingredient_needs(daily_menu)
+    ingredient_totals = dict(calculate_ingredient_needs(daily_menu))
+    ingredient_totals_list = [
+        {"ingredient": ingredient, "quantity": quantity}
+        for ingredient, quantity in ingredient_totals.items()
+    ]
 
-    # Conversion du defaultdict en dictionnaire classique pour le rendre facilement manipulable
-    ingredient_totals = dict(ingredient_totals)
+    if request.method == "POST":
+        # Traitement des requêtes d'ingrédients envoyées aux fournisseurs
+        supplier_ids = request.POST.getlist("supplier_id")
+        ingredient_ids = request.POST.getlist("ingredient_id")
+        quantities = request.POST.getlist("ingredient_quantity")
 
-    return render(request, "gerant_dashboard/ingredient_needs.html", {
+        supplier_ingredient_requests = []
+
+        for supplier_id, ingredient_id, quantity in zip(supplier_ids, ingredient_ids, quantities):
+            if quantity.strip() == "":
+                continue  # ignore empty inputs
+
+            supplier = get_object_or_404(Supplier, id=supplier_id)
+            ingredient = get_object_or_404(Ingredient, id=ingredient_id)
+            store = request.user.managed_store
+
+            supplier_ingredient_requests.append(
+                SupplierIngredientRequest(
+                    supplier=supplier,
+                    ingredient=ingredient,
+                    store=store,
+                    quantity_requested=quantity
+                )
+            )
+
+        SupplierIngredientRequest.objects.bulk_create(supplier_ingredient_requests)
+        return redirect("gerant_dashboard:request_sent_confirmation")
+
+    suppliers = Supplier.objects.all()
+
+    context = {
         "daily_menu": daily_menu,
-        "ingredient_totals": ingredient_totals,
-    })
+        "ingredient_totals_list": ingredient_totals_list,
+        "suppliers": suppliers,
+    }
+
+    return render(request, "gerant_dashboard/ingredient_needs.html", context)
 
 
 # gerant_dashboard/views.py
@@ -498,7 +534,7 @@ def edit_daily_menu(request):
         daily_menu = DailyMenu.objects.get(date=today, store=store)
     except DailyMenu.DoesNotExist:
         # If no menu exists for today, let the gerant know or handle accordingly
-        return redirect('gerant_dashboard:create_daily_menu')  # or create new
+        return redirect('gerant_dashboard:historique_menus')  # or create new
 
     # Fetch all dishes for the store
     dishes = Dish.objects.filter(store=store)
@@ -514,19 +550,22 @@ def edit_daily_menu(request):
     if request.method == 'POST':
         for dish in dishes:
             quantity = request.POST.get(f'quantity_{dish.id}')
-            if quantity:
+            if quantity is not None and quantity.strip() != '':
                 try:
                     quantity = int(quantity)
-                    if quantity >= 0:
-                        # Check if dish already exists in the menu and update or create new entry
+                    if quantity > 0:
                         menu_dish, created = DailyMenuDish.objects.get_or_create(
                             daily_menu=daily_menu,
                             dish=dish,
+                            defaults={'quantity': quantity}
                         )
-                        menu_dish.quantity = quantity
-                        menu_dish.save()
+                        if not created:
+                            menu_dish.quantity = quantity
+                            menu_dish.save()
+                    else:
+                        DailyMenuDish.objects.filter(daily_menu=daily_menu, dish=dish).delete()
                 except ValueError:
-                    continue  # Skip invalid quantities
+                    continue
 
         return redirect('gerant_dashboard:historique_menus')  # Redirect to the historical menu page
 
@@ -535,31 +574,41 @@ def edit_daily_menu(request):
         'dishes': dishes,
     })
 
+# views.py
+from django.shortcuts import render, redirect, get_object_or_404
+from .forms import SupplierIngredientFormSet
+from pdg_dashboard.models import Supplier
 
+def manage_supplier_ingredients(request, supplier_id):
+    supplier = get_object_or_404(Supplier, id=supplier_id)
 
-@login_required
-def today_sales_view(request):
-    store = request.user.store  # Assuming each gérant is linked to one store
-    today = timezone.now().date()
+    if request.method == 'POST':
+        formset = SupplierIngredientFormSet(request.POST, queryset=SupplierIngredient.objects.none())
+        if formset.is_valid():
+            for form in formset:
+                if form.cleaned_data:
+                    ingredient = form.cleaned_data['ingredient']
+                    price = form.cleaned_data['price_per_unit']
+                    # On crée l’objet si pas déjà lié
+                    SupplierIngredient.objects.get_or_create(
+                        supplier=supplier,
+                        ingredient=ingredient,
+                        defaults={
+                            'price_per_unit': price,
+                        }
+                    )
+            return redirect('gerant_dashboard:home')
+    else:
+        formset = SupplierIngredientFormSet(queryset=SupplierIngredient.objects.none())
 
-    menu_today = MenuOfToday.objects.filter(store=store, date=today).first()
-
-    dishes_today = []
-    if menu_today:
-        dishes_today = MenuOfTodayDish.objects.filter(menu_of_today=menu_today).select_related('dish')
-
-    return render(request, 'gerant_dashboard/today_sales.html', {
-        'menu_today': menu_today,
-        'dishes_today': dishes_today,
-        'today': today,
+    return render(request, 'gerant_dashboard/manage_supplier_ingredients.html', {
+        'supplier': supplier,
+        'formset': formset,
     })
 
-@login_required
-def historic_sales_view(request):
-    store = request.user.store
 
-    history = MenuOfToday.objects.filter(store=store).exclude(date=timezone.now().date()).order_by('-date')
 
-    return render(request, 'gerant_dashboard/historic_sales.html', {
-        'history': history,
-    })
+from django.shortcuts import render
+
+def request_sent_confirmation(request):
+    return render(request, 'gerant_dashboard/request_sent_confirmation.html')
