@@ -50,6 +50,7 @@ urlpatterns = [
     path('ingredients-du-jour/', views.view_daily_ingredients, name='daily_ingredients'),
     path('historique-menus/', views.historique_menus, name='historique_menus'),
     path('edit_daily_menu/', views.edit_daily_menu, name='edit_daily_menu'),
-
+    path('manage_supplier_ingredients/<int:supplier_id>/', views.manage_supplier_ingredients, name='manage_supplier_ingredients'),
+    path('request-sent-confirmation/', views.request_sent_confirmation, name='request_sent_confirmation'),
 ]
 

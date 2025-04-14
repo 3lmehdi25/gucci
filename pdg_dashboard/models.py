@@ -189,3 +189,63 @@ class DishIngredient(models.Model):
     def delete_dish_image(sender, instance, **kwargs):
         if instance.image and os.path.isfile(instance.image.path):
             os.remove(instance.image.path)
+
+
+
+
+
+class Supplier(models.Model):
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='supplier_profile',
+        limit_choices_to={'role': 'fournisseur'}  # Limiter le choix des utilisateurs à ceux ayant le rôle 'fournisseur'
+    )
+    name = models.CharField(max_length=255)
+    ingredients = models.ManyToManyField(Ingredient, through="SupplierIngredient")
+
+    def __str__(self):
+        return f"{self.name}"
+
+
+
+
+class SupplierIngredient(models.Model):
+    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE)
+    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
+    price_per_unit = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.supplier.name} - {self.ingredient.name} ({self.quantity_needed} {self.ingredient.unit})"
+
+
+
+# pdg_dashboard/models.py
+from django.db import models
+from .models import Ingredient, Supplier, Store
+from django.utils import timezone
+
+class SupplierIngredientRequest(models.Model):
+    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE)
+    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
+    store = models.ForeignKey(Store, on_delete=models.CASCADE)
+    quantity_requested = models.FloatField()
+    date_requested = models.DateField(default=timezone.now)
+    status = models.CharField(max_length=20, choices=[
+        ("pending", "En attente"),
+        ("approved", "Approuvée"),
+        ("rejected", "Rejetée"),
+        ("delivered", "Livrée")
+    ], default="pending")
+
+    def __str__(self):
+        return f"{self.ingredient.name} - {self.quantity_requested} ({self.supplier.name})"
+
+
+
+
+class SupplierResponse(models.Model):
+    request = models.OneToOneField(SupplierIngredientRequest, on_delete=models.CASCADE)
+    accepted = models.BooleanField(default=False)
+    comment = models.TextField(blank=True)
+    date_responded = models.DateTimeField(auto_now=True)

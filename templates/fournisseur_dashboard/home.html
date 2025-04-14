@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Fournisseur - Tableau de bord</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: "Segoe UI", sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar {
+            background-color: #2c3e50;
+            padding: 15px;
+            color: white;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 30px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        p {
+            color: #555;
+        }
+
+        .btn {
+            display: inline-block;
+            margin: 20px 10px 0;
+            padding: 12px 24px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #217dbb;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h2>Bienvenue Fournisseur</h2>
+    </div>
+
+    <div class="container">
+        <h1>Tableau de bord</h1>
+        <p>Bienvenue sur votre interface. Vous pouvez consulter les demandes d'ingrédients à traiter et répondre selon votre disponibilité.</p>
+
+        <a href="{% url 'fournisseur_dashboard:view_requests' %}" class="btn">Voir les demandes</a>
+
+    </div>
+</body>
+</html>

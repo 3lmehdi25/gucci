@@ -100,3 +100,7 @@ class DailyMenuDish(models.Model):
 
     class Meta:
         unique_together = ('daily_menu', 'dish')
+
+
+
+

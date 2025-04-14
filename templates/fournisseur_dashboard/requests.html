@@ -1,0 +1,9 @@
+<h2>Demandes à traiter</h2>
+<ul>
+{% for req in requests %}
+    <li>
+        {{ req.ingredient.name }} - {{ req.quantity_requested }}
+        <a href="{% url 'fournisseur_dashboard:respond_to_request' req.id %}">Répondre</a>
+    </li>
+{% endfor %}
+</ul>

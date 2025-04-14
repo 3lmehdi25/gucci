@@ -1,21 +1,48 @@
-{% extends "base.html" %}
-{% block content %}
-<h2>Ingrédients nécessaires pour le {{ daily_menu.date }}</h2>
+{# templates/gerant_dashboard/ingredient_needs.html #}
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Ingrédient</th>
-            <th>Quantité nécessaire</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for ingredient, quantity in ingredient_totals.items %}
-        <tr>
-            <td>{{ ingredient.name }}</td>  <!-- Utilisation correcte de l'attribut name de l'objet Ingredient -->
-            <td>{{ quantity }}</td>  <!-- Affichage de la quantité -->
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-{% endblock %}
+<h2>Ingrédients nécessaires pour aujourd'hui</h2>
+<ul>
+  {% for item in ingredient_totals_list %}
+    {% with ingredient=item.ingredient quantity=item.quantity %}
+        {{ ingredient.name }} – {{ quantity }}
+    {% endwith %}
+{% endfor %}
+
+</ul>
+
+<hr>
+
+<h2>Fournisseur(s)</h2>
+<form method="POST">
+  {% csrf_token %}
+  {% for supplier in suppliers %}
+    <div style="margin-bottom: 2rem;">
+      <h4>{{ supplier.name }}</h4>
+      {% for supplier_ingredient in supplier.supplieringredient_set.all %}
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem">
+          <span>{{ supplier_ingredient.ingredient.name }}</span>
+          <input type="hidden" name="supplier_id" value="{{ supplier.id }}">
+          <input type="hidden" name="ingredient_id" value="{{ supplier_ingredient.ingredient.id }}">
+          <input type="number" name="ingredient_quantity" placeholder="Quantité à demander">
+        </div>
+      {% empty %}
+        <p><em>Ce fournisseur ne fournit aucun ingrédient.</em></p>
+      {% endfor %}
+    </div>
+  {% endfor %}
+
+  <button type="submit">Envoyer la demande</button>
+</form>
+
+<hr>
+
+<h2>Gestion des fournisseurs</h2>
+{% for supplier in suppliers %}
+  <div>
+    <h4>{{ supplier.name }}</h4>
+    <a href="{% url 'gerant_dashboard:manage_supplier_ingredients' supplier.id %}">
+  Gérer les ingrédients fournis
+</a>
+
+  </div>
+{% endfor %}
